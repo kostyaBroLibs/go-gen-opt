@@ -1,0 +1,60 @@
+linters:
+  enable-all: true
+linters-settings:
+  tagliatelle:
+    case:
+      use-field-name: true
+      rules:
+        json: snake
+        yaml: kebab
+  wsl:
+    # See https://github.com/bombsimon/wsl/blob/master/doc/configuration.md for
+    # documentation of available settings.
+    allow-assign-and-anything: false
+    allow-assign-and-call: true
+    allow-cuddle-declarations: false
+    allow-multiline-assign: true
+    allow-separated-leading-comment: false
+    allow-trailing-comment: false
+    force-case-trailing-whitespace: 0
+    force-err-cuddling: false
+    force-short-decl-cuddling: false
+    strict-append: true
+  gci:
+    local-prefixes: go-gen-opt/
+  godox:
+    keywords:
+      - BUG
+      - FIX
+      - FIXME
+      - TODO
+      - bug
+      - fixme
+      - todo
+      - fix
+  gomnd:
+    settings:
+      mnd:
+        checks: [argument,case,condition,operation,return,assign]
+  goheader:
+    values:
+      const:
+        AUTHOR: "kostyaBro"
+        YEAR: "2021"
+    template: |-
+    // Copyright {{ YEAR }} {{ AUTHOR }}
+    //
+    // Licensed under the Apache License, Version 2.0 (the "License");
+    // you may not use this file except in compliance with the License.
+    // You may obtain a copy of the License at
+    //
+    // http://www.apache.org/licenses/LICENSE-2.0
+    //
+    // Unless required by applicable law or agreed to in writing, software
+    // distributed under the License is distributed on an "AS IS" BASIS,
+    // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    // See the License for the specific language governing permissions and
+    // limitations under the License.
+    //
+run:
+  modules-download-mode: vendor
