@@ -13,4 +13,4 @@
 // limitations under the License.
 
 // Package example stores the integrations tests for showing how programm work.
-package example
+package example_test
