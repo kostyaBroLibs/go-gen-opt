@@ -1,7 +1,7 @@
-package test_cases
+package testcases
 
 //go:genopt
-type originalObject struct {
+type OriginalObject struct {
 	optionInt int
-	configInt int `opt:required`
+	configInt int `opt:"required"`
 }

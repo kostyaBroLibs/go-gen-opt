@@ -25,7 +25,7 @@ import (
 )
 
 // Mock for future code
-// #TODO update this later
+// #TODO update this later.
 type Worker interface {
 	Work(orig []byte) ([]byte, error)
 }
@@ -36,16 +36,19 @@ func (dw *defaultWorker) Work(orig []byte) ([]byte, error) {
 	return orig, nil
 }
 
+//nolint:gochecknoglobals,unused
 var tempWorker = &defaultWorker{}
 
 // Mock end
 
 const testCasesFolder = "test_cases"
 
+//nolint:unused
 type integrationTest struct {
 	suite.Suite
 }
 
+//nolint:unused
 func (t *integrationTest) TestFull() {
 	origFileName := "it_original_file.go"
 	expectFileName := "it_expected_file.go"
@@ -59,8 +62,10 @@ func (t *integrationTest) TestFull() {
 func TestFull(t *testing.T) {
 	// #TODO: enable tests
 	// suite.Run(t, new(integrationTest))
+	t.Parallel()
 }
 
+//nolint:unused
 func (t *integrationTest) mustProvideTestCases() map[string][]byte {
 	pwd, err := os.Getwd()
 	t.Require().Nil(err, "can't load pwd")
@@ -73,6 +78,7 @@ func (t *integrationTest) mustProvideTestCases() map[string][]byte {
 	t.Require().Nil(err, "can't read files in tesctace folder")
 
 	output := make(map[string][]byte, len(files))
+
 	for _, file := range files {
 		fileFullPath := fmt.Sprintf("%s/%s", testCasesFullPath, file.Name())
 		fileBytes, err := ioutil.ReadFile(fileFullPath)

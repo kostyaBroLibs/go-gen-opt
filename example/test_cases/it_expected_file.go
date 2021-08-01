@@ -1,4 +1,4 @@
-package test_cases
+package testcases
 
 import (
 	"errors"
@@ -7,20 +7,23 @@ import (
 
 var (
 	ErrConfigEmpty = func(configName string) error {
-		return fmt.Errorf("%w: %s must not been empty", ErrWrongConfig, configName)
+		return fmt.Errorf(
+			"%w: %s must not been empty",
+			ErrWrongConfig, configName,
+		)
 	}
 	ErrWrongConfig = errors.New("wrong config")
 )
 
 type Config struct {
 	_         struct{}
-	OptionInt int
+	ConfigInt int
 }
 
-type OriginalObjectOption func(object *originalObject)
+type OriginalObjectOption func(object *OriginalObject)
 
 func WithOptionInt(optionInt int) OriginalObjectOption {
-	return func(o *originalObject) {
+	return func(o *OriginalObject) {
 		o.optionInt = optionInt
 	}
 }
@@ -28,9 +31,10 @@ func WithOptionInt(optionInt int) OriginalObjectOption {
 func NewOriginalObject(
 	config Config,
 	options ...OriginalObjectOption,
-) (*originalObject, error) {
-	oo := &originalObject{
-		optionInt: config.OptionInt,
+) (*OriginalObject, error) {
+	oo := &OriginalObject{
+		configInt: config.ConfigInt,
+		optionInt: 0,
 	}
 
 	for _, option := range options {
