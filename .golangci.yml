@@ -37,4 +37,4 @@ linters-settings:
       mnd:
         checks: [argument,case,condition,operation,return,assign]
 run:
-  modules-download-mode: vendor
+  modules-download-mode: release
