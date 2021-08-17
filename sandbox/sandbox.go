@@ -3,11 +3,13 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"github.com/stoewer/go-strcase"
 	"go/ast"
 	"go/parser"
 	"go/printer"
 	"go/token"
 	"golang.org/x/tools/go/ast/inspector"
+	"io"
 	"log"
 	"os"
 	"strings"
@@ -138,7 +140,7 @@ func With{{ .OptionNameCC }}(
 	}
 }
 `))
-	templateOptionInit = template.Must(template.New("").Parse(`
+	templateInit = template.Must(template.New("").Parse(`
 func New{{ .ObjectNameCC }}(
 	options ...{{ .ObjectNameCC }}Option,
 ) (*{{ .ObjectNameCC }}, error) {
@@ -154,58 +156,103 @@ func New{{ .ObjectNameCC }}(
 )
 
 func (g *astStructForGen) generate(outFile *ast.File) error {
-	required, err := g.requiredField()
-	if err != nil {
-		return fmt.Errorf("can not to generate file, error: %w", err)
+	// required, err := g.requiredField()
+	// if err != nil {
+	// 	return fmt.Errorf("can not to generate file, error: %w", err)
+	// }
+	//
+	// params := struct {
+	// 	ObjectNameLCC string
+	// 	ObjectNameCC  string
+	// }{
+	// 	ObjectNameCC:  g.typeSpec.Name.Name,
+	// 	ObjectNameLCC: exprToString(required.Type),
+	// }
+
+	buf := new(bytes.Buffer)
+	err := error(nil)
+
+	if err = g.writePackage(buf); err != nil {
+		return fmt.Errorf("write package error: %w", err)
 	}
 
-	params := struct {
-		ObjectNameLCC string
-		ObjectNameCC  string
-	}{
-		ObjectNameCC:  g.typeSpec.Name.Name,
-		ObjectNameLCC: exprToString(required.Type),
+	if err = g.writeOptionType(buf); err != nil {
+		return fmt.Errorf("write options error: %w", err)
 	}
 
-	var buf bytes.Buffer
-	err = templatePackage.Execute(&buf, struct {
-		PackageName string
-	}{
-		PackageName: g.packageName,
-	})
-	if err != nil {
-		return fmt.Errorf("execute template error: %w", err)
+	if err = g.writeInit(buf); err != nil {
+		return fmt.Errorf("write init error: %w", err)
 	}
 
-	err = templateOptionFunc.Execute(&buf, struct {
-		ObjectNameCC string
-	}{
-		ObjectNameCC: required.Names[0].Name,
-	})
-
-	err = templateOptionInit.Execute(&buf, params)
-	if err != nil {
-		return fmt.Errorf("execute template error: %w", err)
-	}
-	// log.Println(buf.String())
-
-	templateAst, err := parser.ParseFile(
-		token.NewFileSet(),
-		"",
-		buf.Bytes(),
-		parser.ParseComments,
-	)
-	if err != nil {
-		return fmt.Errorf(
-			"can not to create ast for template, error: %w", err,
-		)
-	}
+	templateAst, err := g.generateAST(buf.Bytes())
 
 	for _, decl := range templateAst.Decls {
 		outFile.Decls = append(outFile.Decls, decl)
 	}
 
 	return nil
+}
+
+func (g *astStructForGen) writePackage(buf io.Writer) error {
+	err := templatePackage.Execute(buf, struct {
+		PackageName string
+	}{
+		PackageName: g.packageName,
+	})
+	if err != nil {
+		return fmt.Errorf("template execute error: %w", err)
+	}
+
+	return nil
+}
+
+func (g *astStructForGen) writeOptionType(buf io.Writer) error {
+	// for _, field := range g.structType.Fields.List {
+	//
+	// }
+	err := templateOptionFunc.Execute(buf, struct {
+		ObjectNameCC string
+	}{
+		ObjectNameCC: g.typeSpec.Name.Name,
+	})
+	if err != nil {
+		return fmt.Errorf("template execute error: %w", err)
+	}
+
+	return nil
+}
+
+func (g *astStructForGen) writeInit(buf io.Writer) error {
+	err := templateInit.Execute(buf, struct {
+		ObjectNameLCC string
+		ObjectNameCC  string
+	}{
+		ObjectNameCC: g.typeSpec.Name.Name,
+		ObjectNameLCC: strcase.LowerCamelCase(
+			g.typeSpec.Name.Name,
+		),
+	})
+	if err != nil {
+		return fmt.Errorf("execute template error: %w", err)
+	}
+
+	return nil
+}
+
+func (g *astStructForGen) generateAST(listing []byte) (*ast.File, error) {
+	templateAst, err := parser.ParseFile(
+		token.NewFileSet(),
+		"",
+		listing,
+		parser.ParseComments,
+	)
+	if err != nil {
+		return nil, fmt.Errorf(
+			"can not to create ast for template, error: %w", err,
+		)
+	}
+
+	return templateAst, nil
 }
 
 func exprToString(expr ast.Expr) string {
