@@ -123,6 +123,7 @@ func pullObjectsForGenerating(fileFullPath string) ([]*astStructForGen, error) {
 // Block with templates.
 // CC - CamelCase
 // LCC - lowerCamelCase
+// OC - original case
 //nolint:gochecknoglobals
 var (
 	templatePackage = template.Must(template.New("").Parse(`
@@ -136,7 +137,7 @@ func With{{ .OptionNameCC }}(
 	{{ .OptionNameLCC }} {{ .OptionType }},
 ) {{ .ObjectNameCC }}Option {
 	return func({{ .ObjectNameLCC }} *{{ .ObjectNameCC}}) {
-		{{ .OptionNameLCC }}.{{ .OptionNameLCC }} = {{ .OptionNameLCC }}
+		{{ .ObjectNameLCC }}.{{ .OptionNameOC }} = {{ .OptionNameLCC }}
 	}
 }
 `))
@@ -180,6 +181,10 @@ func (g *astStructForGen) generate(outFile *ast.File) error {
 		return fmt.Errorf("write options error: %w", err)
 	}
 
+	if err = g.writeOptionFuncs(buf); err != nil {
+		return fmt.Errorf("write options funcs error: %w", err)
+	}
+
 	if err = g.writeInit(buf); err != nil {
 		return fmt.Errorf("write init error: %w", err)
 	}
@@ -207,16 +212,38 @@ func (g *astStructForGen) writePackage(buf io.Writer) error {
 }
 
 func (g *astStructForGen) writeOptionType(buf io.Writer) error {
-	// for _, field := range g.structType.Fields.List {
-	//
-	// }
 	err := templateOptionFunc.Execute(buf, struct {
 		ObjectNameCC string
 	}{
-		ObjectNameCC: g.typeSpec.Name.Name,
+		ObjectNameCC: strcase.UpperCamelCase(g.typeSpec.Name.Name),
 	})
 	if err != nil {
 		return fmt.Errorf("template execute error: %w", err)
+	}
+
+	return nil
+}
+
+func (g *astStructForGen) writeOptionFuncs(buf io.Writer) error {
+	for _, field := range g.structType.Fields.List {
+		err := templateWithFunc.Execute(buf, struct {
+			OptionNameCC  string
+			OptionNameOC  string
+			OptionNameLCC string
+			OptionType    string
+			ObjectNameCC  string
+			ObjectNameLCC string
+		}{
+			ObjectNameCC:  strcase.UpperCamelCase(g.typeSpec.Name.Name),
+			ObjectNameLCC: strcase.LowerCamelCase(g.typeSpec.Name.Name),
+			OptionType:    exprToString(field.Type),
+			OptionNameCC:  strcase.UpperCamelCase(field.Names[0].Name),
+			OptionNameOC:  field.Names[0].Name,
+			OptionNameLCC: strcase.LowerCamelCase(field.Names[0].Name),
+		})
+		if err != nil {
+			return fmt.Errorf("template execute error: %w", err)
+		}
 	}
 
 	return nil
