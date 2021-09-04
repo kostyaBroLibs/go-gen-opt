@@ -1,2 +1,5 @@
-# JetBrains IDE folder
+# JetBrains IDE folder.
 /.idea/
+
+# Folder for experiments.
+/sandbox/
