@@ -36,5 +36,8 @@ linters-settings:
     settings:
       mnd:
         checks: [argument,case,condition,operation,return,assign]
+  exhaustivestruct:
+    struct-patterns:
+      - 'Config'
 run:
   modules-download-mode: mod
