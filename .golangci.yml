@@ -36,5 +36,12 @@ linters-settings:
     settings:
       mnd:
         checks: [argument,case,condition,operation,return,assign]
+  exhaustivestruct:
+    struct-patterns:
+      - '*Config*'
+      - '*/*Config*'
+      - '*/*/*Config*'
 run:
-  modules-download-mode: mod
+  modules-download-mode: vendor
+  skip-dirs:
+    - sandbox

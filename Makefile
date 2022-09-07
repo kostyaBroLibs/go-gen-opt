@@ -13,7 +13,7 @@ help: ##@miscellaneous Show this help.
 lint: linter ## Run linter.
 
 linter: ## Run linter.
-	docker run --rm -v `pwd`:/app -w /app golangci/golangci-lint:v1.41 golangci-lint run -v
+	docker run --rm -v `pwd`:/app -w /app golangci/golangci-lint:v1.42 golangci-lint run -v
 
 test: ## Run tests.
 	go test -mod=vendor -v -race -bench=. -benchmem ./...
